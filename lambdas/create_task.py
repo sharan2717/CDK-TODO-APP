@@ -5,12 +5,15 @@ import json
 import logging
 import uuid
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger()
+
 dynamodb_client = boto3.client("dynamodb")
 
-def handler(event):
+def main(event,context):
   try :
      table = os.environ.get("TABLE_NAME")
-     logging.info(f"## Loaded table name from environemt variable DDB_TABLE: {table}")
+     logger.info(f"## Loaded table name from environemt variable DDB_TABLE: {table}")
      if event["body"] :
         task = json.loads(event["body"])
         dynamodb_client.put_item(
@@ -27,16 +30,16 @@ def handler(event):
             "body": json.dumps({"message": "task inserted successfully"}),
         }
      else:
-        logging.info("## Received request without a payload")
+        logger.info("## Received request without a payload")
         return {
             "statusCode": 400,
             "headers": {"Content-Type": "application/json"},
             "body": json.dumps({"message": "no payload found"}),
         }
   except Exception as e:
-        logging.error(f"## Error: {e}")
+        logger.error(f"## Error: {e}")
         return {
             "statusCode": 500,
             "headers": {"Content-Type": "application/json"},
-            "body": json.dumps({"message": "Internal Server Error"}),
+            "body": json.dumps({"Error": str(e)}),
         }   

@@ -3,18 +3,21 @@ import os
 import json
 import logging
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger()
+
 dynamodb_client = boto3.client("dynamodb")
 
-def handler(event):
+def main(event,context):
      try :
        table = os.environ.get("TABLE_NAME")
-       logging.info(f"## Loaded table name from environemt variable DDB_TABLE: {table}")
+       logger.info(f"## Loaded table name from environemt variable DDB_TABLE: {table}")
        if event.get("queryStringParameters") and "id" in event["queryStringParameters"]:
             task_id = event["queryStringParameters"]["id"]
        response = dynamodb_client.delete_item(
             TableName=table,
             Key={
-                "id": {"S": task_id}  # Assuming 'id' is a string type primary key
+                "id": {"S": task_id} 
             }
         )
        return {
@@ -23,9 +26,9 @@ def handler(event):
                 "body": json.dumps({"message": f"Task with ID '{task_id}' deleted successfully"}),
             }
      except Exception as e:
-        logging.error(f"## Error: {e}")
+        logger.error(f"## Error: {e}")
         return {
             "statusCode": 500,
             "headers": {"Content-Type": "application/json"},
-            "body": json.dumps({"message": "Internal Server Error"}),
+            "body": json.dumps({"Error": str(e)}),
         }      
